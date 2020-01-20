@@ -1,2 +1,2 @@
 #!bin/bash
-make && ./lander
+make && ./labyrinth

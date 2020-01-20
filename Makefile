@@ -1,2 +1,2 @@
 all:
-	go build -o lander src/*
+	go build -o labyrinth src/*

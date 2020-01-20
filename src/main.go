@@ -11,7 +11,7 @@ import (
 
 func run() {
 	cfg := pixelgl.WindowConfig{
-		Title:  "Lander",
+		Title:  "Space Labyrinth",
 		Bounds: pixel.R(0, 0, 1024, 768),
 		// VSync:  true,
 	}
@@ -23,11 +23,14 @@ func run() {
 
 	drawTarget := pixel.Target(win)
 
+	mapData := parseJSONMap("misc/map.json")
+	labyrinthMap := newWorldMap(mapData, 128, pixel.V(1, 1), pixel.V(128/2, 128/2))
+
 	playerIdleSprite := createFullSprite(loadPicture("img/idleShuttle.png"))
 	playerRunningSprite := createFullSprite(loadPicture("img/runningShuttle.png"))
 	explosionPartialSprite := createPartialSprite(loadPicture("img/explosion.png"), pixel.R(0, 0, 32, 32))
 	playerExplosion := newAnimation(explosionPartialSprite, pixel.V(32, 32), .1, false)
-	playerInstance := newPlayer(playerIdleSprite, playerRunningSprite, playerExplosion, win.Bounds().Center())
+	playerInstance := newPlayer(playerIdleSprite, playerRunningSprite, playerExplosion, labyrinthMap.startPos)
 
 	keyboardEventManager := newEventManager()
 	sub := subscriber(playerInstance)
@@ -47,7 +50,7 @@ func run() {
 		frames++
 		select {
 		case <-ticker:
-			win.SetTitle(fmt.Sprintf("Lander | %d FPS", frames))
+			win.SetTitle(fmt.Sprintf("Space Labyrinth | %d FPS", frames))
 			frames = 0
 		default:
 		}
@@ -75,8 +78,12 @@ func run() {
 
 		playerInstance.update(dt)
 
+		cam := pixel.IM.Moved(win.Bounds().Center().Sub(playerInstance.rect.Center()))
+		win.SetMatrix(cam)
+
 		win.Clear(colornames.Black)
 		playerInstance.draw(&drawTarget)
+		labyrinthMap.draw(&drawTarget)
 	}
 }
 
