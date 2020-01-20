@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/faiface/pixel"
@@ -32,9 +33,20 @@ func run() {
 	keyboardEventManager.subscribe("Forward Pressed", &sub)
 	keyboardEventManager.subscribe("Forward Not Pressed", &sub)
 
+	frames := 0
+	ticker := time.Tick(time.Second)
+
 	lastTime := time.Now()
 	for !win.Closed() {
 		win.Update()
+
+		frames++
+		select {
+		case <-ticker:
+			win.SetTitle(fmt.Sprintf("Lander | %d FPS", frames))
+			frames = 0
+		default:
+		}
 
 		dt := time.Since(lastTime).Seconds()
 		lastTime = time.Now()
