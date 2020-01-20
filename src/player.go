@@ -62,8 +62,6 @@ func (p *player) destroy() {
 		p.isDead = true
 		p.velocity = pixel.V(0, 0)
 		p.direction = pixel.V(0, 0)
-
-		p.explosion.run()
 	}
 }
 
@@ -84,6 +82,8 @@ func (p *player) update(dt float64) {
 	if !p.isDead {
 		p.velocity = p.velocity.Sub(g.Scaled(dt))
 		p.rect = p.rect.Moved(p.velocity.Scaled(dt))
+	} else if !p.explosion.isFinished {
+		p.explosion.advance(dt)
 	}
 }
 

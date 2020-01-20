@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/faiface/pixel"
 )
 
@@ -13,6 +11,7 @@ type animation struct {
 	currentFrame    int
 	totalFrames     int
 	secondsPerFrame float64
+	currentSeconds  float64
 	looping         bool
 	isFinished      bool
 }
@@ -29,22 +28,20 @@ func newAnimation(partialSprite *pixel.Sprite, frameSize pixel.Vec, secondsPerFr
 	}
 }
 
-func (a *animation) run() {
-	go (func() {
-		duration := time.Duration(float64(time.Second) * a.secondsPerFrame)
-		ticker := time.Tick(duration)
-		for !a.isFinished {
-			select {
-			case <-ticker:
-				a.advance()
-			default:
-			}
-		}
-	})()
-}
+func (a *animation) advance(dt float64) {
+	if a.isFinished {
+		return
+	}
 
-func (a *animation) advance() {
-	if !a.isFinished {
+	a.currentSeconds += dt
+	if a.currentSeconds < a.secondsPerFrame {
+		return
+	}
+
+	framesToAdvance := int(a.currentSeconds / a.secondsPerFrame)
+	a.currentSeconds -= a.secondsPerFrame * float64(framesToAdvance)
+
+	for i := 0; i < framesToAdvance && !a.isFinished; i++ {
 		movedRight := a.partialSprite.Frame().Moved(pixel.V(a.frameSize.X, 0))
 
 		// if movedRight is completely inside the spritesheet

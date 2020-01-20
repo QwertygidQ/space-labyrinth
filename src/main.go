@@ -13,6 +13,7 @@ func run() {
 	cfg := pixelgl.WindowConfig{
 		Title:  "Lander",
 		Bounds: pixel.R(0, 0, 1024, 768),
+		// VSync:  true,
 	}
 
 	win, err := pixelgl.NewWindow(cfg)
