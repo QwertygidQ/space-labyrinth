@@ -10,14 +10,20 @@ import (
 type player struct {
 	idleSprite    *pixel.Sprite
 	runningSprite *pixel.Sprite
+	explosion     *animation
 	isRunning     bool
+	isDead        bool
 	rect          pixel.Rect
 	velocity      pixel.Vec
 	direction     pixel.Vec
 }
 
-func newPlayer(idleSprite *pixel.Sprite, runningSprite *pixel.Sprite, startPos pixel.Vec) *player {
-	//rect := sprite.Frame().Moved(sprite.Frame().Center().Scaled(-1)) // move rect, so that its center is (0, 0)
+func newPlayer(
+	idleSprite *pixel.Sprite,
+	runningSprite *pixel.Sprite,
+	explosion *animation,
+	startPos pixel.Vec,
+) *player {
 	hitboxSize := idleSprite.Frame().Size().Scaled(.5)
 
 	rect := pixel.R(-hitboxSize.X/2, -hitboxSize.Y/2, hitboxSize.X/2, hitboxSize.Y/2)
@@ -28,6 +34,7 @@ func newPlayer(idleSprite *pixel.Sprite, runningSprite *pixel.Sprite, startPos p
 	return &player{
 		idleSprite:    idleSprite,
 		runningSprite: runningSprite,
+		explosion:     explosion,
 		rect:          rect,
 		velocity:      velocity,
 		direction:     direction,
@@ -36,6 +43,8 @@ func newPlayer(idleSprite *pixel.Sprite, runningSprite *pixel.Sprite, startPos p
 
 func (p *player) notify(ev *event) {
 	switch ev.name {
+	case "Space Pressed":
+		p.destroy()
 	case "Left Pressed":
 		p.rotate(1, ev.data.(float64)) // dt
 	case "Right Pressed":
@@ -44,6 +53,17 @@ func (p *player) notify(ev *event) {
 		p.accelerate(1, ev.data.(float64)) // dt
 	case "Forward Not Pressed":
 		p.isRunning = false
+	}
+}
+
+func (p *player) destroy() {
+	if !p.isDead {
+		p.isRunning = false
+		p.isDead = true
+		p.velocity = pixel.V(0, 0)
+		p.direction = pixel.V(0, 0)
+
+		p.explosion.run()
 	}
 }
 
@@ -61,8 +81,10 @@ func (p *player) accelerate(accelerationMultiplier, dt float64) {
 func (p *player) update(dt float64) {
 	g := pixel.V(0, 98)
 
-	p.velocity = p.velocity.Sub(g.Scaled(dt))
-	p.rect = p.rect.Moved(p.velocity.Scaled(dt))
+	if !p.isDead {
+		p.velocity = p.velocity.Sub(g.Scaled(dt))
+		p.rect = p.rect.Moved(p.velocity.Scaled(dt))
+	}
 }
 
 func (p *player) draw(drawTarget *pixel.Target) {
@@ -70,7 +92,11 @@ func (p *player) draw(drawTarget *pixel.Target) {
 	mat = mat.Rotated(pixel.ZV, p.direction.Angle())
 	mat = mat.Moved(p.rect.Center())
 
-	if p.isRunning {
+	if p.isDead {
+		if !p.explosion.isFinished {
+			p.explosion.partialSprite.Draw(*drawTarget, mat)
+		}
+	} else if p.isRunning {
 		p.runningSprite.Draw(*drawTarget, mat)
 	} else {
 		p.idleSprite.Draw(*drawTarget, mat)

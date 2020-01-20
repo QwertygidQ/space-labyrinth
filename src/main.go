@@ -24,7 +24,9 @@ func run() {
 
 	playerIdleSprite := createFullSprite(loadPicture("img/idleShuttle.png"))
 	playerRunningSprite := createFullSprite(loadPicture("img/runningShuttle.png"))
-	playerInstance := newPlayer(playerIdleSprite, playerRunningSprite, win.Bounds().Center())
+	explosionPartialSprite := createPartialSprite(loadPicture("img/explosion.png"), pixel.R(0, 0, 32, 32))
+	playerExplosion := newAnimation(explosionPartialSprite, pixel.V(32, 32), .1, false)
+	playerInstance := newPlayer(playerIdleSprite, playerRunningSprite, playerExplosion, win.Bounds().Center())
 
 	keyboardEventManager := newEventManager()
 	sub := subscriber(playerInstance)
@@ -32,6 +34,7 @@ func run() {
 	keyboardEventManager.subscribe("Right Pressed", &sub)
 	keyboardEventManager.subscribe("Forward Pressed", &sub)
 	keyboardEventManager.subscribe("Forward Not Pressed", &sub)
+	keyboardEventManager.subscribe("Space Pressed", &sub)
 
 	frames := 0
 	ticker := time.Tick(time.Second)
@@ -51,6 +54,9 @@ func run() {
 		dt := time.Since(lastTime).Seconds()
 		lastTime = time.Now()
 
+		if win.Pressed(pixelgl.KeySpace) {
+			keyboardEventManager.notifySubscribers(&event{name: "Space Pressed", data: dt})
+		}
 		if win.Pressed(pixelgl.KeyW) || win.Pressed(pixelgl.KeyUp) {
 			keyboardEventManager.notifySubscribers(&event{name: "Forward Pressed", data: dt})
 		} else {
