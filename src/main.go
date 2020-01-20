@@ -21,14 +21,16 @@ func run() {
 
 	drawTarget := pixel.Target(win)
 
-	playerSprite := createFullSprite(loadPicture("img/shuttle.png"))
-	playerInstance := newPlayer(playerSprite, win.Bounds().Center())
+	playerIdleSprite := createFullSprite(loadPicture("img/idleShuttle.png"))
+	playerRunningSprite := createFullSprite(loadPicture("img/runningShuttle.png"))
+	playerInstance := newPlayer(playerIdleSprite, playerRunningSprite, win.Bounds().Center())
 
 	keyboardEventManager := newEventManager()
 	sub := subscriber(playerInstance)
 	keyboardEventManager.subscribe("Left Pressed", &sub)
 	keyboardEventManager.subscribe("Right Pressed", &sub)
 	keyboardEventManager.subscribe("Forward Pressed", &sub)
+	keyboardEventManager.subscribe("Forward Not Pressed", &sub)
 
 	lastTime := time.Now()
 	for !win.Closed() {
@@ -39,6 +41,8 @@ func run() {
 
 		if win.Pressed(pixelgl.KeyW) || win.Pressed(pixelgl.KeyUp) {
 			keyboardEventManager.notifySubscribers(&event{name: "Forward Pressed", data: dt})
+		} else {
+			keyboardEventManager.notifySubscribers(&event{name: "Forward Not Pressed"})
 		}
 		if win.Pressed(pixelgl.KeyS) || win.Pressed(pixelgl.KeyDown) {
 			keyboardEventManager.notifySubscribers(&event{name: "Backward Pressed", data: dt})
