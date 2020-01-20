@@ -23,8 +23,9 @@ func run() {
 
 	drawTarget := pixel.Target(win)
 
+	var tileSize float64 = 128
 	mapData := parseJSONMap("misc/map.json")
-	labyrinthMap := newWorldMap(mapData, 128, pixel.V(1, 1), pixel.V(128/2, -128/2))
+	labyrinthMap := newWorldMap(mapData, tileSize, pixel.V(1, 1), pixel.V(tileSize/2, tileSize/2))
 
 	playerIdleSprite := createFullSprite(loadPicture("img/idleShuttle.png"))
 	playerRunningSprite := createFullSprite(loadPicture("img/runningShuttle.png"))
@@ -82,8 +83,8 @@ func run() {
 		win.SetMatrix(cam)
 
 		win.Clear(colornames.Black)
-		playerInstance.draw(&drawTarget)
 		labyrinthMap.draw(&drawTarget)
+		playerInstance.draw(&drawTarget)
 	}
 }
 

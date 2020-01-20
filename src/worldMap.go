@@ -12,6 +12,8 @@ import (
 
 type worldMap struct {
 	tiles      *[][]bool
+	tilesW     int
+	tilesH     int
 	tileSize   float64
 	startTile  pixel.Vec
 	startDelta pixel.Vec
@@ -73,23 +75,26 @@ func newWorldMap(tiles *[][]bool, tileSize float64, startTile pixel.Vec, startDe
 
 			var (
 				worldX = float64(x) * tileSize
-				worldY = -float64(y) * tileSize
+				worldY = float64(len(*tiles)-1-y) * tileSize
 			)
 
 			imd.Color = pixel.RGB(1, 1, 1)
 			imd.Push(pixel.V(worldX, worldY))
 			imd.Push(pixel.V(worldX+tileSize, worldY))
-			imd.Push(pixel.V(worldX+tileSize, worldY-tileSize))
-			imd.Push(pixel.V(worldX, worldY-tileSize))
+			imd.Push(pixel.V(worldX+tileSize, worldY+tileSize))
+			imd.Push(pixel.V(worldX, worldY+tileSize))
 			imd.Polygon(0)
 		}
 	}
 
-	startPos := startTile.ScaledXY(pixel.V(tileSize, -tileSize)).Add(startDelta)
+	startTile.Y = float64(len(*tiles) - 1 - int(startTile.Y))
+	startPos := startTile.Scaled(tileSize).Add(startDelta)
 
 	return &worldMap{
 		tiles:      tiles,
 		tileSize:   tileSize,
+		tilesW:     len((*tiles)[0]),
+		tilesH:     len(*tiles),
 		startTile:  startTile,
 		startDelta: startDelta,
 		startPos:   startPos,
@@ -97,16 +102,35 @@ func newWorldMap(tiles *[][]bool, tileSize float64, startTile pixel.Vec, startDe
 	}
 }
 
-func (wm *worldMap) isIntersecting(rect pixel.Rect) {
-	tileX := rect.Center().X / wm.tileSize
-	if rect.Center().X-tileX*wm.tileSize > 0 {
-		tileX++
+func (wm *worldMap) isIntersecting(rect pixel.Rect) bool {
+	// If rect is fully outside of the map
+	if rect.Max.X < 0 ||
+		rect.Min.X > float64(wm.tilesW)*wm.tileSize ||
+		rect.Max.Y < 0 ||
+		rect.Min.Y > float64(wm.tilesH)*wm.tileSize {
+		return false
 	}
 
-	tileY := rect.Center().Y / wm.tileSize
-	if rect.Center().Y-tileY*wm.tileSize > 0 {
-		tileY++
+	// Naive approach: iterate over every wall and check for intersection
+	for y, tileLine := range *wm.tiles {
+		for x, tilePresent := range tileLine {
+			if !tilePresent {
+				continue
+			}
+
+			var (
+				worldX = float64(x) * wm.tileSize
+				worldY = float64(len(*wm.tiles)-1-y) * wm.tileSize
+			)
+
+			tileRect := pixel.R(worldX, worldY, worldX+wm.tileSize, worldY+wm.tileSize)
+			if tileRect.Intersects(rect) {
+				return true
+			}
+		}
 	}
+
+	return false
 }
 
 func (wm *worldMap) draw(drawTarget *pixel.Target) {
