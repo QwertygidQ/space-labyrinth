@@ -36,9 +36,6 @@ func (a *animation) run() {
 		for !a.isFinished {
 			select {
 			case <-ticker:
-				if a.isFinished {
-					break
-				}
 				a.advance()
 			default:
 			}
@@ -47,16 +44,18 @@ func (a *animation) run() {
 }
 
 func (a *animation) advance() {
-	movedRight := a.partialSprite.Frame().Moved(pixel.V(a.frameSize.X, 0))
+	if !a.isFinished {
+		movedRight := a.partialSprite.Frame().Moved(pixel.V(a.frameSize.X, 0))
 
-	// if movedRight is completely inside the spritesheet
-	if a.partialSprite.Picture().Bounds().Intersect(movedRight) == movedRight {
-		a.partialSprite.Set(a.partialSprite.Picture(), movedRight)
-		a.currentFrame++
-	} else if a.looping {
-		firstFrame := pixel.R(0, 0, a.frameSize.X, a.frameSize.Y)
-		a.partialSprite.Set(a.partialSprite.Picture(), firstFrame)
-	} else {
-		a.isFinished = true
+		// if movedRight is completely inside the spritesheet
+		if a.partialSprite.Picture().Bounds().Intersect(movedRight) == movedRight {
+			a.partialSprite.Set(a.partialSprite.Picture(), movedRight)
+			a.currentFrame++
+		} else if a.looping {
+			firstFrame := pixel.R(0, 0, a.frameSize.X, a.frameSize.Y)
+			a.partialSprite.Set(a.partialSprite.Picture(), firstFrame)
+		} else {
+			a.isFinished = true
+		}
 	}
 }
