@@ -73,19 +73,19 @@ func newWorldMap(tiles *[][]bool, tileSize float64, startTile pixel.Vec, startDe
 
 			var (
 				worldX = float64(x) * tileSize
-				worldY = float64(y) * tileSize
+				worldY = -float64(y) * tileSize
 			)
 
 			imd.Color = pixel.RGB(1, 1, 1)
 			imd.Push(pixel.V(worldX, worldY))
 			imd.Push(pixel.V(worldX+tileSize, worldY))
-			imd.Push(pixel.V(worldX+tileSize, worldY+tileSize))
-			imd.Push(pixel.V(worldX, worldY+tileSize))
+			imd.Push(pixel.V(worldX+tileSize, worldY-tileSize))
+			imd.Push(pixel.V(worldX, worldY-tileSize))
 			imd.Polygon(0)
 		}
 	}
 
-	startPos := startTile.Scaled(tileSize).Add(startDelta)
+	startPos := startTile.ScaledXY(pixel.V(tileSize, -tileSize)).Add(startDelta)
 
 	return &worldMap{
 		tiles:      tiles,
@@ -94,6 +94,18 @@ func newWorldMap(tiles *[][]bool, tileSize float64, startTile pixel.Vec, startDe
 		startDelta: startDelta,
 		startPos:   startPos,
 		imd:        imd,
+	}
+}
+
+func (wm *worldMap) isIntersecting(rect pixel.Rect) {
+	tileX := rect.Center().X / wm.tileSize
+	if rect.Center().X-tileX*wm.tileSize > 0 {
+		tileX++
+	}
+
+	tileY := rect.Center().Y / wm.tileSize
+	if rect.Center().Y-tileY*wm.tileSize > 0 {
+		tileY++
 	}
 }
 

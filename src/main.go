@@ -24,7 +24,7 @@ func run() {
 	drawTarget := pixel.Target(win)
 
 	mapData := parseJSONMap("misc/map.json")
-	labyrinthMap := newWorldMap(mapData, 128, pixel.V(1, 1), pixel.V(128/2, 128/2))
+	labyrinthMap := newWorldMap(mapData, 128, pixel.V(1, 1), pixel.V(128/2, -128/2))
 
 	playerIdleSprite := createFullSprite(loadPicture("img/idleShuttle.png"))
 	playerRunningSprite := createFullSprite(loadPicture("img/runningShuttle.png"))
