@@ -20,8 +20,9 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
-
 	drawTarget := pixel.Target(win)
+
+	cam := newCamera(win.Canvas(), pixel.ZV, 0, pixel.V(1, 1))
 
 	var tileSize float64 = 128
 	mapData := parseJSONMap("misc/map.json")
@@ -79,8 +80,8 @@ func run() {
 
 		playerInstance.update(dt)
 
-		cam := pixel.IM.Moved(win.Bounds().Center().Sub(playerInstance.rect.Center()))
-		win.SetMatrix(cam)
+		cam.moveTo(playerInstance.rect.Center())
+		cam.applyChanges()
 
 		win.Clear(colornames.Black)
 		labyrinthMap.draw(&drawTarget)
